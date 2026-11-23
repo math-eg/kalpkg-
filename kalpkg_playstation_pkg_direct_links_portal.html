@@ -1,0 +1,2186 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KALPKG.COM — PlayStation PKG & Direct Links Portal</title>
+  <!-- Google Fonts: Inter & Cairo for crisp English + Arabic typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS SDK v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Cairo', 'sans-serif'],
+            arabic: ['Cairo', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            kal: {
+              bg: '#0b0c10',
+              card: '#14161f',
+              surface: '#1a1d29',
+              hover: '#202433',
+              green: '#22c55e',
+              purple: '#8b5cf6',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --bg-main: #0b0c10;
+      --bg-card: #14161f;
+      --bg-surface: #1a1d29;
+      --accent-green: #22c55e;
+      --accent-purple: #8b5cf6;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: #f3f4f6;
+      font-family: 'Inter', 'Cairo', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Signature Green-to-Purple Gradients */
+    .kal-gradient {
+      background: linear-gradient(135deg, #22c55e 0%, #8b5cf6 100%);
+    }
+    .kal-gradient-hover:hover {
+      background: linear-gradient(135deg, #16a34a 0%, #7c3aed 100%);
+    }
+    .kal-text-gradient {
+      background: linear-gradient(135deg, #22c55e 15%, #8b5cf6 85%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .kal-border-gradient {
+      position: relative;
+      background: #14161f;
+      border-radius: 1rem;
+    }
+    .kal-border-gradient::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.45), rgba(139, 92, 246, 0.45));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0c10;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #232736;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #22c55e, #8b5cf6);
+    }
+
+    /* Fanned 3D Hero Cover Cards */
+    .hero-fan-container {
+      perspective: 1200px;
+    }
+    .hero-card-left {
+      transform: rotate(-9deg) translateX(18px) translateY(14px) scale(0.92);
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .hero-card-left:hover {
+      transform: rotate(-4deg) translateX(10px) translateY(-4px) scale(0.97);
+      z-index: 30;
+    }
+    .hero-card-center {
+      transform: translateY(0px) scale(1);
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 20;
+    }
+    .hero-card-center:hover {
+      transform: translateY(-10px) scale(1.04);
+      z-index: 35;
+    }
+    .hero-card-right {
+      transform: rotate(9deg) translateX(-18px) translateY(14px) scale(0.92);
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .hero-card-right:hover {
+      transform: rotate(4deg) translateX(-10px) translateY(-4px) scale(0.97);
+      z-index: 30;
+    }
+
+    /* Game Card Hover Lift */
+    .game-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+    .game-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 14px 30px -10px rgba(139, 92, 246, 0.28), 0 8px 18px -8px rgba(34, 197, 94, 0.22);
+    }
+
+    /* Smooth Fade Animation */
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fade-up {
+      animation: fadeSlideUp 0.3s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-purple-500 selection:text-white">
+
+  <!-- Ambient Background Glows -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-emerald-500/10 rounded-full blur-[130px]"></div>
+    <div class="absolute top-20 right-0 w-[30rem] h-[30rem] bg-purple-600/10 rounded-full blur-[140px]"></div>
+  </div>
+
+  <!-- 1. TOP UTILITY BAR -->
+  <div class="relative z-30 bg-[#08090c] border-b border-white/[0.06] text-xs text-gray-400">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-10 flex items-center justify-between gap-2">
+      <!-- Left Platform Tabs -->
+      <div class="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar py-1">
+        <button onclick="selectTopPlatform('PSVita')" class="top-plat-btn px-2.5 py-1 rounded-full hover:text-white hover:bg-white/5 transition flex items-center gap-1.5 whitespace-nowrap">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="6"/><circle cx="7" cy="12" r="1.5"/><circle cx="17" cy="12" r="1.5"/></svg>
+          <span>PSVita</span>
+        </button>
+        <button onclick="selectTopPlatform('PSP')" class="top-plat-btn px-2.5 py-1 rounded-full hover:text-white hover:bg-white/5 transition flex items-center gap-1.5 whitespace-nowrap">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="10" rx="5"/><path d="M6 12h4M8 10v4"/></svg>
+          <span>PSP</span>
+        </button>
+        <!-- Active PlayStation Pill in Green-Purple Gradient -->
+        <button onclick="selectTopPlatform('PlayStation')" class="px-3.5 py-1 rounded-full kal-gradient text-white font-semibold shadow-md shadow-emerald-500/15 flex items-center gap-1.5 whitespace-nowrap">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 4.2v15.4l3.6 1.1V8.3c0-.7.3-1.1.8-.9.6.2.7.7.7 1.4v5.1c2.3.8 4.1 0 4.1-2.9 0-2.9-1.1-4.2-4.2-5.3-1.3-.4-3.4-1.1-5-1.5zm-1.4 11.4l-4.6 1.6c-1.4.5-1.6 1.3-.3 1.7 1.3.4 3.4.3 4.8-.2l.1-.1v-3zm11.2-.6c-1.5-.5-3.4-.6-4.9-.2l-.1.1v2.6l3.4-1.2c.8-.3 1.5-.2 1.8.1.3.3 0 .7-.8 1l-4.4 1.6v2.2l6.3-2.3c1.5-.6 1.8-1.4.5-2-.5-.3-1.1-.6-1.8-.9z"/></svg>
+          <span>PlayStation</span>
+        </button>
+        <button onclick="selectTopPlatform('Switch')" class="top-plat-btn hidden sm:flex px-2.5 py-1 rounded-full hover:text-white hover:bg-white/5 transition items-center gap-1.5 whitespace-nowrap">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="6" height="18" rx="2"/><rect x="14" y="3" width="6" height="18" rx="2"/><circle cx="7" cy="8" r="1"/><circle cx="17" cy="15" r="1"/></svg>
+          <span>Switch</span>
+        </button>
+        <button onclick="selectTopPlatform('PC')" class="top-plat-btn hidden md:flex px-2.5 py-1 rounded-full hover:text-white hover:bg-white/5 transition items-center gap-1.5 whitespace-nowrap">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+          <span>PC</span>
+        </button>
+        <button onclick="selectTopPlatform('Android')" class="top-plat-btn hidden lg:flex px-2.5 py-1 rounded-full hover:text-white hover:bg-white/5 transition items-center gap-1.5 whitespace-nowrap">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 16v-5a7 7 0 0 1 14 0v5"/><path d="M8 5l-1.5-2M16 5l1.5-2"/></svg>
+          <span>Android</span>
+        </button>
+        <button onclick="selectTopPlatform('Xbox')" class="top-plat-btn hidden lg:flex px-2.5 py-1 rounded-full hover:text-white hover:bg-white/5 transition items-center gap-1.5 whitespace-nowrap">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M7.5 7.5l9 9M16.5 7.5l-9 9"/></svg>
+          <span>Xbox</span>
+        </button>
+      </div>
+
+      <!-- Right Utility Links & Language Toggle -->
+      <div class="flex items-center gap-3 sm:gap-4 shrink-0">
+        <button onclick="openInfoModal('DMCA')" class="hidden sm:inline hover:text-emerald-400 transition">DMCA</button>
+        <button onclick="openInfoModal('Contact')" class="hidden sm:inline hover:text-emerald-400 transition" data-i18n="contactUs">Contact Us</button>
+        <button onclick="openInfoModal('Privacy')" class="hidden md:inline hover:text-purple-400 transition" data-i18n="privacy">Privacy</button>
+        <button onclick="toggleLanguage()" id="langToggleBtn" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-200 font-medium transition">
+          <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/></svg>
+          <span id="langLabel">العربية</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. MAIN NAVIGATION BAR -->
+  <header class="sticky top-0 z-30 bg-[#0b0c10]/90 backdrop-blur-xl border-b border-white/[0.07]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <!-- Left: Mobile Menu + Logo + Nav Links -->
+      <div class="flex items-center gap-6">
+        <button onclick="toggleMobileMenu()" class="lg:hidden p-2 rounded-xl bg-kal-card border border-white/10 text-gray-300 hover:text-white" aria-label="Menu">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+
+        <!-- Custom Green-Purple SVG Emblem + KALPKG.COM Logo -->
+        <a href="#home" onclick="navigateTo('home'); return false;" class="flex items-center gap-2.5 group">
+          <div class="w-10 h-10 rounded-xl kal-gradient p-[1.5px] shadow-lg shadow-purple-500/20 group-hover:scale-105 transition">
+            <div class="w-full h-full bg-[#0e1017] rounded-[10px] flex items-center justify-center">
+              <!-- Stylized Dragon / PKG Cube Emblem -->
+              <svg class="w-6 h-6" viewBox="0 0 32 32" fill="none">
+                <defs>
+                  <linearGradient id="kalLogoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#22c55e"/>
+                    <stop offset="100%" stop-color="#8b5cf6"/>
+                  </linearGradient>
+                </defs>
+                <path d="M16 3L27 9.5V22.5L16 29L5 22.5V9.5L16 3Z" stroke="url(#kalLogoGrad)" stroke-width="2.4" stroke-linejoin="round"/>
+                <path d="M11 11V21M11 16L18 11M14 14L20 21" stroke="url(#kalLogoGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="22" cy="11" r="2" fill="#22c55e"/>
+              </svg>
+            </div>
+          </div>
+          <div class="leading-none">
+            <span class="block font-black text-lg tracking-tight kal-text-gradient">KALPKG.COM</span>
+            <span class="block text-[10px] font-bold tracking-widest text-emerald-400/90 uppercase mt-0.5">PKG &amp; LINKS HUB</span>
+          </div>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <nav class="hidden lg:flex items-center gap-1 text-sm font-medium">
+          <button onclick="navigateTo('home')" data-nav="home" class="nav-link active px-3.5 py-2 rounded-xl text-white relative transition" data-i18n="navHome">
+            Home
+            <span class="nav-indicator absolute bottom-0.5 left-3 right-3 h-0.5 rounded-full kal-gradient"></span>
+          </button>
+          <button onclick="filterByCategory('PS5')" data-nav="PS5" class="nav-link px-3.5 py-2 rounded-xl text-gray-400 hover:text-white relative transition">
+            PS5
+            <span class="nav-indicator hidden absolute bottom-0.5 left-3 right-3 h-0.5 rounded-full kal-gradient"></span>
+          </button>
+          <button onclick="filterByCategory('PS4')" data-nav="PS4" class="nav-link px-3.5 py-2 rounded-xl text-gray-400 hover:text-white relative transition">
+            PS4
+            <span class="nav-indicator hidden absolute bottom-0.5 left-3 right-3 h-0.5 rounded-full kal-gradient"></span>
+          </button>
+          <button onclick="filterByCategory('PS3')" data-nav="PS3" class="nav-link px-3.5 py-2 rounded-xl text-gray-400 hover:text-white relative transition">
+            PS3
+            <span class="nav-indicator hidden absolute bottom-0.5 left-3 right-3 h-0.5 rounded-full kal-gradient"></span>
+          </button>
+          <button onclick="filterByCategory('Arabic')" data-nav="Arabic" class="nav-link px-3.5 py-2 rounded-xl text-gray-400 hover:text-white relative transition" data-i18n="navArabic">
+            Arabic
+            <span class="nav-indicator hidden absolute bottom-0.5 left-3 right-3 h-0.5 rounded-full kal-gradient"></span>
+          </button>
+          <button onclick="navigateTo('guides')" data-nav="guides" class="nav-link px-3.5 py-2 rounded-xl text-gray-400 hover:text-white relative transition" data-i18n="navGuides">
+            Guides
+            <span class="nav-indicator hidden absolute bottom-0.5 left-3 right-3 h-0.5 rounded-full kal-gradient"></span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Right: Quick Search + Add PKG + Login -->
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <!-- Navbar Search -->
+        <div class="hidden md:flex items-center bg-kal-card border border-white/10 focus-within:border-purple-500/60 rounded-full px-3.5 py-1.5 w-56 xl:w-64 transition">
+          <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+          <input id="navSearchInput" type="text" oninput="handleSearchInput(this.value)" placeholder="Games, PKG, CUSA..." class="bg-transparent border-none outline-none text-xs text-white placeholder-gray-500 px-2.5 w-full" />
+        </div>
+
+        <!-- + Add PKG / Supabase Manager Button -->
+        <button onclick="openManagerModal('add')" class="flex items-center gap-1.5 px-3.5 py-2 rounded-full kal-gradient kal-gradient-hover text-white text-xs sm:text-sm font-semibold shadow-lg shadow-purple-500/20 transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          <span data-i18n="addPkgBtn">Add PKG</span>
+        </button>
+
+        <!-- Supabase Status Pill Button -->
+        <button onclick="openManagerModal('supabase')" title="Supabase Database Config" class="p-2 rounded-full bg-kal-card border border-white/10 hover:border-emerald-500/50 text-gray-300 hover:text-white transition relative">
+          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 2L4 14h7.5l-1 8L20 10h-7.5l1-8z"/></svg>
+          <span id="sbStatusDot" class="absolute top-0.5 right-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 ring-2 ring-[#0b0c10]"></span>
+        </button>
+
+        <!-- Login Button -->
+        <button onclick="openLoginModal()" id="loginHeaderBtn" class="px-4 py-2 rounded-full bg-white text-gray-950 hover:bg-gray-100 text-xs sm:text-sm font-bold transition shadow-sm">
+          Login
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobileMenu" class="hidden lg:hidden bg-[#10121a] border-b border-white/10 px-4 pt-3 pb-5 space-y-3">
+      <div class="flex items-center bg-kal-card border border-white/10 rounded-full px-3.5 py-2">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" oninput="handleSearchInput(this.value)" placeholder="Search games, PKG, CUSA..." class="bg-transparent border-none outline-none text-sm text-white placeholder-gray-500 px-2.5 w-full" />
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-sm font-semibold">
+        <button onclick="navigateTo('home'); toggleMobileMenu()" class="p-2.5 rounded-xl bg-kal-card text-center hover:bg-white/10">Home</button>
+        <button onclick="filterByCategory('PS5'); toggleMobileMenu()" class="p-2.5 rounded-xl bg-kal-card text-center hover:bg-white/10">PS5</button>
+        <button onclick="filterByCategory('PS4'); toggleMobileMenu()" class="p-2.5 rounded-xl bg-kal-card text-center hover:bg-white/10">PS4</button>
+        <button onclick="filterByCategory('PS3'); toggleMobileMenu()" class="p-2.5 rounded-xl bg-kal-card text-center hover:bg-white/10">PS3</button>
+        <button onclick="filterByCategory('Arabic'); toggleMobileMenu()" class="p-2.5 rounded-xl bg-kal-card text-center hover:bg-white/10">Arabic</button>
+        <button onclick="navigateTo('guides'); toggleMobileMenu()" class="p-2.5 rounded-xl bg-kal-card text-center hover:bg-white/10">Guides</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+
+    <!-- ==================== VIEW 1: HOME & CATALOG ==================== -->
+    <div id="homeView" class="space-y-12">
+
+      <!-- HERO SECTION -->
+      <section id="heroSection" class="py-4 sm:py-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        <!-- Left Column -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-kal-card border border-white/10 text-xs font-semibold">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-emerald-400">DIRECT PKG ARCHIVE</span>
+            <span class="text-gray-500">•</span>
+            <span class="text-purple-400" id="totalGamesBadge">10+ Verified Releases</span>
+          </div>
+
+          <h1 class="text-4xl sm:text-5xl lg:text-[3.5rem] font-black tracking-tight leading-[1.08] text-white" data-i18n="heroTitle">
+            Every <span class="kal-text-gradient">PlayStation PKG,</span> in one place.
+          </h1>
+
+          <p class="text-gray-400 text-base sm:text-lg max-w-xl leading-relaxed" data-i18n="heroSubtitle">
+            PS5, PS4, PS3 and Arabic PKG files &amp; direct links, organized and easy to reach.
+          </p>
+
+          <!-- Pill-Shaped Search Bar -->
+          <form onsubmit="event.preventDefault(); triggerHeroSearch();" class="flex items-center bg-kal-card border border-white/10 focus-within:border-emerald-500/60 rounded-full p-1.5 pl-5 max-w-xl shadow-xl shadow-black/40 transition">
+            <svg class="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+            <input id="heroSearchInput" type="text" oninput="handleSearchInput(this.value)" placeholder="Search a game, CUSA ID, or genre..." class="bg-transparent border-none outline-none text-sm sm:text-base text-white placeholder-gray-500 px-3 w-full" />
+            <button type="submit" class="px-6 py-2.5 rounded-full kal-gradient kal-gradient-hover text-white font-bold text-sm shadow-md transition shrink-0" data-i18n="searchBtn">
+              Search
+            </button>
+          </form>
+
+          <!-- Quick Filter Pills -->
+          <div class="flex flex-wrap items-center gap-2.5 pt-1">
+            <button onclick="filterByCategory('All')" data-pill="All" class="hero-pill active px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold kal-gradient text-white shadow-md transition">
+              All
+            </button>
+            <button onclick="filterByCategory('PS5')" data-pill="PS5" class="hero-pill px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-kal-card border border-white/10 text-gray-300 hover:border-purple-500/50 hover:text-white transition">
+              PS5
+            </button>
+            <button onclick="filterByCategory('PS4')" data-pill="PS4" class="hero-pill px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-kal-card border border-white/10 text-gray-300 hover:border-emerald-500/50 hover:text-white transition">
+              PS4
+            </button>
+            <button onclick="filterByCategory('PS3')" data-pill="PS3" class="hero-pill px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-kal-card border border-white/10 text-gray-300 hover:border-purple-500/50 hover:text-white transition">
+              PS3
+            </button>
+            <button onclick="filterByCategory('Arabic')" data-pill="Arabic" class="hero-pill px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-kal-card border border-white/10 text-gray-300 hover:border-emerald-500/50 hover:text-white transition">
+              Arabic التعريب
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: 3 Fanned / Tilted 3D PlayStation Game Cover Cards -->
+        <div class="lg:col-span-5 flex items-center justify-center py-4">
+          <div id="heroFannedCards" class="hero-fan-container relative flex items-center justify-center w-full max-w-md h-80 sm:h-96">
+            <!-- Dynamically injected 3D fanned cards (PS4 left, PS5 center, PS3 right) -->
+          </div>
+        </div>
+      </section>
+
+      <!-- FILTERED / SEARCH RESULTS SECTION (Visible when searching or filtering a specific category) -->
+      <section id="filteredResultsSection" class="hidden space-y-6 animate-fade-up">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div class="flex items-center gap-3">
+            <span class="w-3 h-8 rounded-full kal-gradient"></span>
+            <div>
+              <h2 id="filteredHeading" class="text-2xl font-extrabold text-white">PS4 Games</h2>
+              <p id="filteredSubheading" class="text-xs text-gray-400">Showing matching PKG releases</p>
+            </div>
+          </div>
+          <button onclick="filterByCategory('All')" class="px-4 py-2 rounded-full bg-kal-card border border-white/10 hover:border-emerald-500/50 text-xs font-semibold text-gray-200 transition">
+            ← Show All Categories
+          </button>
+        </div>
+
+        <div id="filteredGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5">
+          <!-- Filtered Game Cards injected here -->
+        </div>
+      </section>
+
+      <!-- CATEGORY SHELVES (Visible on Default Home View) -->
+      <div id="categoryShelves" class="space-y-12">
+
+        <!-- Shelf 1: PS4 Section -->
+        <section class="space-y-5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-kal-card border border-white/10 flex items-center justify-center text-emerald-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"/></svg>
+              </div>
+              <h2 class="text-xl sm:text-2xl font-extrabold text-white">PS4</h2>
+              <span class="px-2.5 py-0.5 rounded-md bg-purple-500/20 border border-purple-500/40 text-purple-300 text-[11px] font-bold tracking-wider uppercase">NEW</span>
+            </div>
+            <button onclick="filterByCategory('PS4')" class="px-4 py-1.5 rounded-full bg-kal-card border border-white/10 hover:border-purple-500/50 text-xs sm:text-sm font-semibold text-gray-300 hover:text-white transition flex items-center gap-1.5">
+              <span data-i18n="viewAll">View all</span>
+              <span>→</span>
+            </button>
+          </div>
+          <div id="ps4Grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-5"></div>
+        </section>
+
+        <!-- Shelf 2: PS5 Section -->
+        <section class="space-y-5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-kal-card border border-white/10 flex items-center justify-center text-purple-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              </div>
+              <h2 class="text-xl sm:text-2xl font-extrabold text-white">PS5</h2>
+              <span class="px-2.5 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold tracking-wider uppercase">NEXT-GEN</span>
+            </div>
+            <button onclick="filterByCategory('PS5')" class="px-4 py-1.5 rounded-full bg-kal-card border border-white/10 hover:border-emerald-500/50 text-xs sm:text-sm font-semibold text-gray-300 hover:text-white transition flex items-center gap-1.5">
+              <span data-i18n="viewAll">View all</span>
+              <span>→</span>
+            </button>
+          </div>
+          <div id="ps5Grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-5"></div>
+        </section>
+
+        <!-- Shelf 3: Arabic & Dubbed Section -->
+        <section class="space-y-5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl kal-gradient flex items-center justify-center text-white font-arabic font-bold text-sm">
+                ع
+              </div>
+              <h2 class="text-xl sm:text-2xl font-extrabold text-white">Arabic &amp; Dubbed <span class="font-arabic text-base text-emerald-400 font-bold ms-1">التعريب والدبلجة</span></h2>
+              <span class="hidden sm:inline-block px-2.5 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold tracking-wider uppercase">ARABIC PKG</span>
+            </div>
+            <button onclick="filterByCategory('Arabic')" class="px-4 py-1.5 rounded-full bg-kal-card border border-white/10 hover:border-emerald-500/50 text-xs sm:text-sm font-semibold text-gray-300 hover:text-white transition flex items-center gap-1.5">
+              <span data-i18n="viewAll">View all</span>
+              <span>→</span>
+            </button>
+          </div>
+          <div id="arabicGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-5"></div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 2: FULL GAME DETAIL & PKG LINKS VIEW ==================== -->
+    <div id="detailView" class="hidden space-y-8 animate-fade-up">
+      <!-- Top Back Bar -->
+      <div class="flex items-center justify-between">
+        <button onclick="navigateTo('home')" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-kal-card border border-white/10 hover:border-emerald-500/50 text-sm font-semibold text-gray-200 hover:text-white transition">
+          <span>←</span>
+          <span data-i18n="backToGames">Back to Games</span>
+        </button>
+        <div id="detailBreadcrumb" class="text-xs text-gray-400 hidden sm:block">
+          Home / PlayStation / <span class="text-emerald-400 font-semibold">Game</span>
+        </div>
+      </div>
+
+      <!-- Main Detail Hero Split (Matching Screenshot 3) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- Left: Vertical Cover Card -->
+        <div class="lg:col-span-4 max-w-sm mx-auto lg:max-w-none w-full">
+          <div id="detailCoverContainer" class="rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-purple-950/30 bg-kal-card">
+            <!-- Cover SVG/Image rendered here -->
+          </div>
+        </div>
+
+        <!-- Right: Title, Stats, Download PKG Now Button, Mirrors, Actions -->
+        <div class="lg:col-span-8 space-y-6">
+          <div>
+            <div class="flex flex-wrap items-center gap-2.5 mb-2">
+              <span id="detailPlatformPill" class="px-3 py-1 rounded-lg kal-gradient text-white text-xs font-extrabold uppercase tracking-wider">PS4</span>
+              <span id="detailCusaBadge" class="px-3 py-1 rounded-lg bg-kal-card border border-white/10 text-purple-300 text-xs font-mono font-semibold">CUSA00419</span>
+              <span id="detailStatusBadge" class="px-3 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold">VERIFIED PKG</span>
+            </div>
+            <h1 id="detailTitle" class="text-3xl sm:text-4xl font-black text-white tracking-tight">PES 2013</h1>
+            <p id="detailPublished" class="text-xs sm:text-sm text-gray-400 mt-1.5 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              <span>Published: Nov 22, 2026</span>
+            </p>
+          </div>
+
+          <!-- 3 Stat Boxes (Downloads, Views, Rating) -->
+          <div class="grid grid-cols-3 gap-3 sm:gap-4">
+            <div class="bg-kal-card border border-white/[0.07] rounded-2xl p-4">
+              <svg class="w-4 h-4 text-emerald-400 mb-1.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+              <div id="detailDownloads" class="text-xl sm:text-2xl font-extrabold text-white">4,800</div>
+              <div class="text-xs text-gray-400">downloads</div>
+            </div>
+            <div class="bg-kal-card border border-white/[0.07] rounded-2xl p-4">
+              <svg class="w-4 h-4 text-purple-400 mb-1.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              <div id="detailViews" class="text-xl sm:text-2xl font-extrabold text-white">12,691</div>
+              <div class="text-xs text-gray-400">views</div>
+            </div>
+            <div class="bg-kal-card border border-white/[0.07] rounded-2xl p-4">
+              <svg class="w-4 h-4 text-amber-400 mb-1.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <div class="flex items-baseline gap-1.5">
+                <span id="detailRating" class="text-xl sm:text-2xl font-extrabold text-white">4.9</span>
+                <span id="detailRatingCount" class="text-xs text-gray-400">(18)</span>
+              </div>
+              <div class="text-xs text-gray-400">rating</div>
+            </div>
+          </div>
+
+          <!-- Large Green-to-Purple Download PKG Now Button -->
+          <button onclick="revealPkgLinks()" class="w-full py-4 px-6 rounded-full kal-gradient kal-gradient-hover text-white font-extrabold text-base sm:text-lg shadow-xl shadow-emerald-500/15 flex items-center justify-center gap-2.5 transition transform active:scale-[0.99] cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+            <span data-i18n="downloadNow">Download PKG Now</span>
+          </button>
+
+          <!-- DIRECT PKG & MIRROR LINKS PANEL -->
+          <div id="pkgLinksPanel" class="kal-border-gradient p-5 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                <h3 class="font-bold text-white text-sm sm:text-base">Direct PKG &amp; Mirror Download Links</h3>
+              </div>
+              <span class="text-xs text-purple-300 font-medium">SHA-256 Verified • High Speed</span>
+            </div>
+            <div id="pkgLinksList" class="space-y-2.5">
+              <!-- Mirror Links injected here -->
+            </div>
+          </div>
+
+          <!-- Rate This Game Interactive Stars -->
+          <div class="flex flex-wrap items-center gap-3 text-sm text-gray-400">
+            <span>Rate this game:</span>
+            <div id="rateStarsContainer" class="flex items-center gap-1">
+              <!-- 5 Interactive Stars -->
+            </div>
+            <span id="userRatedLabel" class="text-xs text-emerald-400 hidden">Thanks for rating!</span>
+          </div>
+
+          <!-- Action Buttons Row (Add to my lists, Share, Like Heart, Enable Alerts) -->
+          <div class="space-y-3">
+            <button onclick="toggleBookmark()" id="bookmarkBtn" class="w-full py-3 px-4 rounded-full bg-kal-card border border-white/[0.08] hover:border-purple-500/50 text-sm font-semibold text-gray-200 flex items-center justify-center gap-2 transition">
+              <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h10"/></svg>
+              <span id="bookmarkText">Add to my lists</span>
+            </button>
+
+            <div class="grid grid-cols-12 gap-3">
+              <button onclick="shareCurrentGame()" class="col-span-5 py-3 px-4 rounded-full bg-kal-card border border-white/[0.08] hover:border-emerald-500/50 text-sm font-semibold text-gray-200 flex items-center justify-center gap-2 transition">
+                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+                <span>Share</span>
+              </button>
+
+              <button onclick="toggleLikeCurrentGame()" id="likeBtn" class="col-span-2 py-3 px-3 rounded-full bg-kal-card border border-white/[0.08] hover:border-pink-500/50 text-sm font-bold text-gray-200 flex items-center justify-center gap-1.5 transition">
+                <svg id="likeHeartIcon" class="w-4 h-4 text-gray-400 transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                <span id="detailLikesCount">17</span>
+              </button>
+
+              <button onclick="toggleAlerts()" id="alertsBtn" class="col-span-5 py-3 px-4 rounded-full bg-kal-card border border-white/[0.08] hover:border-purple-500/50 text-sm font-semibold text-gray-200 flex items-center justify-center gap-2 transition">
+                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                <span id="alertsText">Enable alerts</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAME INFORMATION 4-COLUMN METADATA GRID (Matching Screenshot 3 Bottom) -->
+      <section class="bg-kal-card border border-white/[0.08] rounded-2xl p-5 sm:p-6 space-y-5">
+        <div class="flex items-center justify-between border-b border-white/[0.07] pb-4">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <h2 class="text-base sm:text-lg font-extrabold text-white">Game Information</h2>
+          </div>
+          <span class="text-xs text-purple-400 font-semibold">PKG Metadata</span>
+        </div>
+
+        <div id="gameInfoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <!-- 12 Metadata Cards injected dynamically -->
+        </div>
+      </section>
+    </div>
+
+    <!-- ==================== VIEW 3: PKG INSTALLATION GUIDES ==================== -->
+    <div id="guidesView" class="hidden space-y-8 animate-fade-up">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-black text-white">PlayStation <span class="kal-text-gradient">PKG Installation Guides</span></h1>
+          <p class="text-sm text-gray-400 mt-1">Step-by-step instructions for installing PS4, PS5, and PS3 PKG files safely.</p>
+        </div>
+        <button onclick="navigateTo('home')" class="px-4 py-2 rounded-full bg-kal-card border border-white/10 hover:border-emerald-500/50 text-xs font-semibold text-gray-200">
+          ← Back to Home
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="kal-border-gradient p-6 space-y-3">
+          <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold">PS4 GoldHEN</span>
+          <h3 class="text-lg font-bold text-white">1. Installing PS4 PKG via USB / Remote</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Format an exFAT USB drive, place your <code class="text-emerald-400">.pkg</code> file in the root directory, open GoldHEN → Package Installer, and install Base PKG first followed by Update PKG.</p>
+        </div>
+        <div class="kal-border-gradient p-6 space-y-3">
+          <span class="px-3 py-1 rounded-full bg-purple-500/20 text-purple-400 text-xs font-bold">PS5 Homebrew</span>
+          <h3 class="text-lg font-bold text-white">2. PS5 PKG &amp; Itemzflow Setup</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Ensure your PS5 firmware matches the required version shown on the game page. Use Debug Settings → Game → Package Installer or Itemzflow for external storage.</p>
+        </div>
+        <div class="kal-border-gradient p-6 space-y-3">
+          <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold">Multi-Part &amp; Arabic</span>
+          <h3 class="text-lg font-bold text-white">3. Merging Multi-Part PKGs &amp; Patches</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">For split releases (Part 1, Part 2), extract all parts into one folder with 7-Zip before transferring. Arabic localization patches install just like standard update PKGs.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="relative z-10 border-t border-white/[0.07] bg-[#08090c] mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
+      <div class="flex items-center gap-2.5">
+        <span class="font-black text-base kal-text-gradient">KALPKG.COM</span>
+        <span>•</span>
+        <span>PlayStation PKG &amp; Direct Links Archive</span>
+      </div>
+      <div class="flex items-center gap-5">
+        <button onclick="openManagerModal('add')" class="hover:text-emerald-400 transition">+ Submit PKG</button>
+        <button onclick="openManagerModal('supabase')" class="hover:text-purple-400 transition">Supabase Config</button>
+        <button onclick="openInfoModal('DMCA')" class="hover:text-white transition">DMCA</button>
+        <button onclick="openInfoModal('Privacy')" class="hover:text-white transition">Privacy</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== MODAL 1: ADD PKG & SUPABASE MANAGER ==================== -->
+  <div id="managerModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-[#12141d] border border-white/15 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+      <!-- Modal Header & Tabs -->
+      <div class="sticky top-0 z-10 bg-[#12141d]/95 backdrop-blur-md border-b border-white/10 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <button onclick="switchManagerTab('add')" id="tabBtnAdd" class="px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold kal-gradient text-white transition">
+            + Add New PKG
+          </button>
+          <button onclick="switchManagerTab('supabase')" id="tabBtnSupabase" class="px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-kal-card text-gray-400 hover:text-white transition">
+            Supabase Config &amp; SQL
+          </button>
+        </div>
+        <button onclick="closeManagerModal()" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- TAB 1: ADD NEW PKG GAME FORM -->
+      <form id="addPkgForm" onsubmit="handleAddPkgSubmit(event)" class="p-6 space-y-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">Game Title *</label>
+            <input required id="pkgTitleInput" type="text" placeholder="e.g. Ghost of Tsushima Director's Cut" class="w-full px-3.5 py-2.5 rounded-xl bg-kal-card border border-white/10 focus:border-emerald-500 outline-none text-sm text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">Platform Category *</label>
+            <select id="pkgPlatformInput" class="w-full px-3.5 py-2.5 rounded-xl bg-kal-card border border-white/10 focus:border-purple-500 outline-none text-sm text-white">
+              <option value="PS4">PS4</option>
+              <option value="PS5">PS5</option>
+              <option value="PS3">PS3</option>
+              <option value="Arabic">Arabic (تعريب / دبلجة)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">CUSA / Title ID</label>
+            <input id="pkgCusaInput" type="text" placeholder="e.g. CUSA11456" class="w-full px-3.5 py-2.5 rounded-xl bg-kal-card border border-white/10 focus:border-emerald-500 outline-none text-sm text-white font-mono" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">Total PKG Size *</label>
+            <input required id="pkgSizeInput" type="text" placeholder="e.g. 46.8 GB" class="w-full px-3.5 py-2.5 rounded-xl bg-kal-card border border-white/10 focus:border-purple-500 outline-none text-sm text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">Cover Image URL (Optional)</label>
+            <input id="pkgCoverInput" type="url" placeholder="https://... (auto-generates cover if blank)" class="w-full px-3.5 py-2.5 rounded-xl bg-kal-card border border-white/10 focus:border-emerald-500 outline-none text-sm text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">Badge Tag</label>
+            <select id="pkgBadgeInput" class="w-full px-3.5 py-2.5 rounded-xl bg-kal-card border border-white/10 focus:border-purple-500 outline-none text-sm text-white">
+              <option value="NEW">NEW (Purple)</option>
+              <option value="Updated">Updated (Green)</option>
+              <option value="">None</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">Developer</label>
+            <input id="pkgDevInput" type="text" placeholder="e.g. Sucker Punch Productions" class="w-full px-3.5 py-2.5 rounded-xl bg-kal-card border border-white/10 focus:border-emerald-500 outline-none text-sm text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">Translator / Localization Type</label>
+            <input id="pkgTranslatorInput" type="text" placeholder="e.g. قوائم عربية وتعليق عربي" class="w-full px-3.5 py-2.5 rounded-xl bg-kal-card border border-white/10 focus:border-purple-500 outline-none text-sm text-white font-arabic" />
+          </div>
+        </div>
+
+        <!-- Dynamic PKG Download Links Builder -->
+        <div class="space-y-3 pt-2 border-t border-white/10">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold uppercase tracking-wider text-emerald-400">PKG Download Links &amp; Mirrors *</label>
+            <button type="button" onclick="addLinkFieldRow()" class="px-3 py-1 rounded-lg bg-purple-500/20 border border-purple-500/40 text-purple-300 hover:bg-purple-500/30 text-xs font-semibold">
+              + Add Another Link
+            </button>
+          </div>
+          <div id="dynamicLinksContainer" class="space-y-2.5">
+            <!-- Initial Link Row -->
+            <div class="grid grid-cols-12 gap-2 link-row">
+              <input required type="text" placeholder="Label (e.g. Base PKG)" value="Direct PKG (Main)" class="col-span-4 px-3 py-2 rounded-xl bg-kal-card border border-white/10 text-xs text-white link-label" />
+              <input type="text" placeholder="Size (45 GB)" value="45.0 GB" class="col-span-2 px-2.5 py-2 rounded-xl bg-kal-card border border-white/10 text-xs text-white link-size" />
+              <input required type="url" placeholder="https://download-server.com/game.pkg" class="col-span-6 px-3 py-2 rounded-xl bg-kal-card border border-white/10 text-xs text-white link-url" />
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+          <button type="button" onclick="closeManagerModal()" class="px-5 py-2.5 rounded-full bg-kal-card text-gray-300 text-xs font-semibold hover:text-white">Cancel</button>
+          <button type="submit" id="submitPkgBtn" class="px-6 py-2.5 rounded-full kal-gradient kal-gradient-hover text-white text-xs sm:text-sm font-bold shadow-lg">
+            Publish PKG to KALPKG
+          </button>
+        </div>
+      </form>
+
+      <!-- TAB 2: SUPABASE CONFIG & SQL SETUP -->
+      <div id="supabaseConfigTab" class="hidden p-6 space-y-5">
+        <div class="p-4 rounded-xl bg-kal-card border border-white/10 flex items-center justify-between">
+          <div>
+            <div class="text-xs text-gray-400">Database Connection Status</div>
+            <div id="sbConnectionLabel" class="text-sm font-bold text-amber-400 mt-0.5">Local Demo Mode (Not Connected)</div>
+          </div>
+          <span class="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-semibold">Supabase JS v2</span>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">Supabase Project URL</label>
+            <input id="sbUrlInput" type="url" placeholder="https://your-project-id.supabase.co" class="w-full px-3.5 py-2.5 rounded-xl bg-kal-card border border-white/10 focus:border-emerald-500 outline-none text-sm text-white font-mono" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">Supabase Anon Public Key</label>
+            <input id="sbKeyInput" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full px-3.5 py-2.5 rounded-xl bg-kal-card border border-white/10 focus:border-purple-500 outline-none text-sm text-white font-mono" />
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <button onclick="saveSupabaseConfig()" class="px-5 py-2.5 rounded-full kal-gradient kal-gradient-hover text-white text-xs sm:text-sm font-bold shadow-md">
+              Save &amp; Connect Supabase
+            </button>
+            <button onclick="disconnectSupabase()" class="px-4 py-2.5 rounded-full bg-kal-card border border-white/10 hover:border-red-500/50 text-xs font-semibold text-gray-300">
+              Reset to Demo Mode
+            </button>
+          </div>
+        </div>
+
+        <!-- Copyable SQL Schema Setup -->
+        <div class="space-y-2 pt-3 border-t border-white/10">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-purple-300">Supabase SQL Editor Setup (Create `pkgs` Table)</span>
+            <button onclick="copySqlSnippet()" class="px-3 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30 text-xs font-semibold">
+              Copy SQL
+            </button>
+          </div>
+          <pre id="sqlSnippetBlock" class="p-3.5 rounded-xl bg-[#090a0f] border border-white/10 text-[11px] text-emerald-300 font-mono overflow-x-auto leading-relaxed">create table if not exists public.pkgs (
+  id uuid default gen_random_uuid() primary key,
+  title text not null,
+  platform text not null default 'PS4',
+  cusa_id text default 'CUSA00000',
+  size text default '10 GB',
+  cover_url text,
+  badge text default 'NEW',
+  developer text default 'PlayStation Studios',
+  publisher text default 'Sony Interactive Entertainment',
+  translator_type text default 'English / Multi',
+  genre text default 'Action, Adventure',
+  firmware text default '9.00 / 11.00',
+  mode text default 'Single-player',
+  screen_language text default 'English, Arabic',
+  release_date text default '2026',
+  is_arabic boolean default false,
+  downloads integer default 0,
+  views integer default 0,
+  likes integer default 0,
+  rating numeric(2,1) default 5.0,
+  rating_count integer default 1,
+  links jsonb default '[]'::jsonb,
+  created_at timestamptz default now()
+);
+
+alter table public.pkgs enable row level security;
+create policy "Public read pkgs" on public.pkgs for select using (true);
+create policy "Public insert pkgs" on public.pkgs for insert with check (true);
+create policy "Public update pkgs" on public.pkgs for update using (true);</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: LOGIN & INFO MODAL ==================== -->
+  <div id="genericModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-[#12141d] border border-white/15 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 id="genericModalTitle" class="text-lg font-extrabold text-white">Uploader Login</h3>
+        <button onclick="closeGenericModal()" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="genericModalBody" class="text-sm text-gray-300 space-y-4">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ==================== JAVASCRIPT APPLICATION LOGIC ==================== -->
+  <script>
+    /**
+     * ============================================================================
+     * KALPKG.COM — Core Application State, Supabase v2 Client & Sample Data
+     * ============================================================================
+     * You can hardcode your Supabase credentials below OR configure them live
+     * via the lightning icon in the top navigation bar (saved in localStorage).
+     */
+    const DEFAULT_SUPABASE_URL = "";
+    const DEFAULT_SUPABASE_ANON_KEY = "";
+
+    let supabaseClient = null;
+    let isSupabaseConnected = false;
+    let currentLang = 'en';
+    let activeCategory = 'All';
+    let searchQuery = '';
+    let selectedGameId = null;
+    let userBookmarks = JSON.parse(localStorage.getItem('kalpkg_bookmarks') || '[]');
+    let userLikes = JSON.parse(localStorage.getItem('kalpkg_likes') || '[]');
+    let userAlerts = JSON.parse(localStorage.getItem('kalpkg_alerts') || '[]');
+
+    // Rich Pre-populated PlayStation & Arabic PKG Catalog (Used when Supabase is not yet connected)
+    const SAMPLE_GAMES = [
+      {
+        id: 'pes-2013-ar',
+        title: 'PES 2013',
+        platform: 'PS4',
+        cusa_id: 'CUSA01928',
+        size: '4.2 GB',
+        badge: 'NEW',
+        is_arabic: true,
+        arabic_banner: 'قوائم عربية وتعليق عربي',
+        developer: 'PES Productions, Konami Computer Entertainment Tokyo',
+        publisher: 'Konami Digital Entertainment',
+        translator_type: 'قوائم عربية وتعليق عربي',
+        genre: 'Sports',
+        firmware: '9.00 / 11.00',
+        mode: 'Single-player, Multiplayer, Co-op',
+        screen_language: 'Arabic, English',
+        release_date: '20/09/2012',
+        published_at: 'Nov 22, 2026',
+        downloads: 4800,
+        views: 12691,
+        likes: 117,
+        rating: 4.9,
+        rating_count: 64,
+        cover_theme: { c1: '#059669', c2: '#7c3aed', accent: '#22c55e', art: 'football' },
+        links: [
+          { label: 'Direct PKG (Full Arabic Commentary)', size: '4.2 GB', url: 'https://cdn.kalpkg.com/ps4/CUSA01928-PES2013-AR.pkg', host: 'KALPKG Direct' },
+          { label: 'Latest Transfer Patch v2026 PKG', size: '680 MB', url: 'https://cdn.kalpkg.com/ps4/CUSA01928-PATCH-2026.pkg', host: 'KALPKG Fast' },
+          { label: 'MediaFire Mirror (Single Link)', size: '4.2 GB', url: 'https://www.mediafire.com/file/kalpkg_pes2013_ar.pkg', host: 'MediaFire' }
+        ]
+      },
+      {
+        id: 'ghost-of-tsushima-ps5',
+        title: 'Ghost of Tsushima: Director’s Cut',
+        platform: 'PS5',
+        cusa_id: 'PPSA02225',
+        size: '58.4 GB',
+        badge: 'NEW',
+        is_arabic: true,
+        arabic_banner: 'ترجمة عربية رسمية',
+        developer: 'Sucker Punch Productions',
+        publisher: 'Sony Interactive Entertainment',
+        translator_type: 'ترجمة عربية رسمية للقوائم والحوارات',
+        genre: 'Action, Open World, Samurai',
+        firmware: '4.50+ / Itemzflow',
+        mode: 'Single-player, Legends Co-op',
+        screen_language: 'Arabic, English, Japanese',
+        release_date: '20/08/2021',
+        published_at: 'Nov 20, 2026',
+        downloads: 9420,
+        views: 28410,
+        likes: 342,
+        rating: 5.0,
+        rating_count: 112,
+        cover_theme: { c1: '#10b981', c2: '#6d28d9', accent: '#f59e0b', art: 'samurai' },
+        links: [
+          { label: 'PS5 Full Dump + PKG Bundle (Part 1)', size: '30.0 GB', url: 'https://cdn.kalpkg.com/ps5/PPSA02225-Ghost-Part1.pkg', host: 'KALPKG Direct' },
+          { label: 'PS5 Full Dump + PKG Bundle (Part 2)', size: '28.4 GB', url: 'https://cdn.kalpkg.com/ps5/PPSA02225-Ghost-Part2.pkg', host: 'KALPKG Direct' },
+          { label: 'Google Drive Mirror', size: '58.4 GB', url: 'https://drive.google.com/kalpkg-ghost-ps5', host: 'Google Drive' }
+        ]
+      },
+      {
+        id: 'rdr2-arabic-ps4',
+        title: 'Red Dead Redemption 2 (Arabic)',
+        platform: 'PS4',
+        cusa_id: 'CUSA03041',
+        size: '89.6 GB',
+        badge: 'Updated',
+        is_arabic: true,
+        arabic_banner: 'تعريب احترافي كامل',
+        developer: 'Rockstar Studios',
+        publisher: 'Rockstar Games',
+        translator_type: 'تعريب احترافي للقوائم والقصة',
+        genre: 'Action, Adventure, Western',
+        firmware: '9.00 / 11.00',
+        mode: 'Single-player',
+        screen_language: 'Arabic, English',
+        release_date: '26/10/2018',
+        published_at: 'Nov 19, 2026',
+        downloads: 18340,
+        views: 49200,
+        likes: 519,
+        rating: 4.9,
+        rating_count: 205,
+        cover_theme: { c1: '#b91c1c', c2: '#581c87', accent: '#22c55e', art: 'western' },
+        links: [
+          { label: 'Base Game PKG (v1.00)', size: '82.1 GB', url: 'https://cdn.kalpkg.com/ps4/CUSA03041-RDR2-Base.pkg', host: 'KALPKG Direct' },
+          { label: 'Update v1.29 + Arabic Mod PKG', size: '7.5 GB', url: 'https://cdn.kalpkg.com/ps4/CUSA03041-RDR2-AR-v129.pkg', host: 'KALPKG Fast' }
+        ]
+      },
+      {
+        id: 'gta-v-ps3',
+        title: 'Grand Theft Auto V',
+        platform: 'PS3',
+        cusa_id: 'BLES01807',
+        size: '17.8 GB',
+        badge: 'Updated',
+        is_arabic: true,
+        arabic_banner: 'تعريب القوائم والحوارات',
+        developer: 'Rockstar North',
+        publisher: 'Rockstar Games',
+        translator_type: 'تعريب القوائم والحوارات',
+        genre: 'Action, Open World',
+        firmware: '4.88+ HEN / CFW',
+        mode: 'Single-player',
+        screen_language: 'Arabic, English',
+        release_date: '17/09/2013',
+        published_at: 'Nov 18, 2026',
+        downloads: 24150,
+        views: 61300,
+        likes: 640,
+        rating: 4.8,
+        rating_count: 310,
+        cover_theme: { c1: '#15803d', c2: '#6b21a8', accent: '#4ade80', art: 'city' },
+        links: [
+          { label: 'PS3 HEN/CFW Full PKG', size: '17.8 GB', url: 'https://cdn.kalpkg.com/ps3/BLES01807-GTAV-AR.pkg', host: 'KALPKG Direct' },
+          { label: 'RAP License + Update 1.27 PKG', size: '1.2 GB', url: 'https://cdn.kalpkg.com/ps3/BLES01807-Update127.pkg', host: 'MediaFire' }
+        ]
+      },
+      {
+        id: 'god-of-war-ragnarok-ps4',
+        title: 'God of War: Sons of Sparta',
+        platform: 'PS4',
+        cusa_id: 'CUSA34384',
+        size: '84.2 GB',
+        badge: 'Updated',
+        is_arabic: true,
+        arabic_banner: 'دبلجة وترجمة عربية',
+        developer: 'Santa Monica Studio',
+        publisher: 'Sony Interactive Entertainment',
+        translator_type: 'دبلجة عربية رسمية + ترجمة',
+        genre: 'Action, Adventure, Mythology',
+        firmware: '9.00 / 11.00',
+        mode: 'Single-player',
+        screen_language: 'Arabic, English',
+        release_date: '09/11/2022',
+        published_at: 'Nov 17, 2026',
+        downloads: 12445,
+        views: 33190,
+        likes: 410,
+        rating: 4.8,
+        rating_count: 149,
+        cover_theme: { c1: '#0f766e', c2: '#7e22ce', accent: '#38bdf8', art: 'myth' },
+        links: [
+          { label: 'Main PKG (Arabic Dub Included)', size: '78.0 GB', url: 'https://cdn.kalpkg.com/ps4/CUSA34384-GOW-Base.pkg', host: 'KALPKG Direct' },
+          { label: 'Update v5.05 + Valhalla DLC PKG', size: '6.2 GB', url: 'https://cdn.kalpkg.com/ps4/CUSA34384-Valhalla.pkg', host: 'KALPKG Fast' }
+        ]
+      },
+      {
+        id: 'blur-ps4',
+        title: 'Blur: Remastered PKG',
+        platform: 'PS4',
+        cusa_id: 'CUSA09812',
+        size: '6.8 GB',
+        badge: '',
+        is_arabic: false,
+        arabic_banner: '',
+        developer: 'Bizarre Creations',
+        publisher: 'Activision',
+        translator_type: 'English / Multi-Language',
+        genre: 'Racing, Arcade',
+        firmware: '9.00 / 11.00',
+        mode: 'Single-player, Local 4P Split-Screen',
+        screen_language: 'English, French, Spanish',
+        release_date: '25/05/2010',
+        published_at: 'Nov 15, 2026',
+        downloads: 16102,
+        views: 29800,
+        likes: 288,
+        rating: 4.7,
+        rating_count: 95,
+        cover_theme: { c1: '#16a34a', c2: '#9333ea', accent: '#ec4899', art: 'racing' },
+        links: [
+          { label: 'Direct PKG (4-Player Splitscreen)', size: '6.8 GB', url: 'https://cdn.kalpkg.com/ps4/CUSA09812-Blur.pkg', host: 'KALPKG Direct' },
+          { label: 'MediaFire Fast Mirror', size: '6.8 GB', url: 'https://www.mediafire.com/file/kalpkg_blur_ps4.pkg', host: 'MediaFire' }
+        ]
+      },
+      {
+        id: 'metal-gear-rising-ps4',
+        title: 'Metal Gear Rising: Revengeance',
+        platform: 'PS4',
+        cusa_id: 'CUSA14210',
+        size: '24.5 GB',
+        badge: '',
+        is_arabic: false,
+        arabic_banner: '',
+        developer: 'PlatinumGames',
+        publisher: 'Konami Digital Entertainment',
+        translator_type: 'English / Japanese',
+        genre: 'Action, Hack and Slash',
+        firmware: '9.00 / 11.00',
+        mode: 'Single-player',
+        screen_language: 'English, Japanese',
+        release_date: '19/02/2013',
+        published_at: 'Nov 14, 2026',
+        downloads: 5316,
+        views: 11240,
+        likes: 134,
+        rating: 4.6,
+        rating_count: 51,
+        cover_theme: { c1: '#047857', c2: '#4c1d95', accent: '#22c55e', art: 'cyber' },
+        links: [
+          { label: 'Complete Edition PKG + All DLCs', size: '24.5 GB', url: 'https://cdn.kalpkg.com/ps4/CUSA14210-MGR.pkg', host: 'KALPKG Direct' }
+        ]
+      },
+      {
+        id: 'max-payne-3-ps4',
+        title: 'Max Payne 3: Complete PKG',
+        platform: 'PS4',
+        cusa_id: 'CUSA11904',
+        size: '31.4 GB',
+        badge: '',
+        is_arabic: true,
+        arabic_banner: 'ترجمة عربية للقصة',
+        developer: 'Rockstar Studios',
+        publisher: 'Rockstar Games',
+        translator_type: 'ترجمة عربية احترافية',
+        genre: 'Third-person Shooter, Action',
+        firmware: '9.00 / 11.00',
+        mode: 'Single-player',
+        screen_language: 'Arabic, English',
+        release_date: '15/05/2012',
+        published_at: 'Nov 12, 2026',
+        downloads: 8214,
+        views: 19400,
+        likes: 210,
+        rating: 4.7,
+        rating_count: 77,
+        cover_theme: { c1: '#059669', c2: '#6d28d9', accent: '#facc15', art: 'noir' },
+        links: [
+          { label: 'Main PKG + Arabic Subtitles', size: '31.4 GB', url: 'https://cdn.kalpkg.com/ps4/CUSA11904-MaxPayne3-AR.pkg', host: 'KALPKG Direct' }
+        ]
+      },
+      {
+        id: 'spiderman-2-ps5',
+        title: 'Marvel’s Spider-Man 2',
+        platform: 'PS5',
+        cusa_id: 'PPSA03016',
+        size: '76.5 GB',
+        badge: 'NEW',
+        is_arabic: true,
+        arabic_banner: 'دبلجة وترجمة عربية',
+        developer: 'Insomniac Games',
+        publisher: 'Sony Interactive Entertainment',
+        translator_type: 'دبلجة عربية رسمية كاملة',
+        genre: 'Action, Adventure, Superhero',
+        firmware: '5.10+ / Itemzflow',
+        mode: 'Single-player',
+        screen_language: 'Arabic, English',
+        release_date: '20/10/2023',
+        published_at: 'Nov 21, 2026',
+        downloads: 15290,
+        views: 41200,
+        likes: 498,
+        rating: 4.9,
+        rating_count: 184,
+        cover_theme: { c1: '#10b981', c2: '#7c3aed', accent: '#ef4444', art: 'hero' },
+        links: [
+          { label: 'PS5 PKG Dump v1.002 (Arabic Dub)', size: '76.5 GB', url: 'https://cdn.kalpkg.com/ps5/PPSA03016-SM2-AR.pkg', host: 'KALPKG Direct' }
+        ]
+      },
+      {
+        id: 'demon-souls-ps5',
+        title: 'Demon’s Souls Remake',
+        platform: 'PS5',
+        cusa_id: 'PPSA01342',
+        size: '52.8 GB',
+        badge: '',
+        is_arabic: false,
+        arabic_banner: '',
+        developer: 'Bluepoint Games',
+        publisher: 'Sony Interactive Entertainment',
+        translator_type: 'English / Multi-Language',
+        genre: 'Action RPG, Soulslike',
+        firmware: '4.03+ / Itemzflow',
+        mode: 'Single-player',
+        screen_language: 'English, French, German',
+        release_date: '12/11/2020',
+        published_at: 'Nov 10, 2026',
+        downloads: 6890,
+        views: 17500,
+        likes: 176,
+        rating: 4.8,
+        rating_count: 89,
+        cover_theme: { c1: '#065f46', c2: '#5b21b6', accent: '#a855f7', art: 'knight' },
+        links: [
+          { label: 'PS5 Full PKG + Deluxe Bonus', size: '52.8 GB', url: 'https://cdn.kalpkg.com/ps5/PPSA01342-DemonsSouls.pkg', host: 'KALPKG Direct' }
+        ]
+      },
+      {
+        id: 'elden-ring-sote-ps5',
+        title: 'Elden Ring: Shadow of the Erdtree',
+        platform: 'PS5',
+        cusa_id: 'PPSA04610',
+        size: '61.2 GB',
+        badge: 'Updated',
+        is_arabic: true,
+        arabic_banner: 'تعريب احترافي شامل',
+        developer: 'FromSoftware',
+        publisher: 'Bandai Namco Entertainment',
+        translator_type: 'تعريب احترافي للقوائم والعناصر',
+        genre: 'Action RPG, Open World',
+        firmware: '5.50+ / Itemzflow',
+        mode: 'Single-player',
+        screen_language: 'Arabic, English',
+        release_date: '21/06/2024',
+        published_at: 'Nov 23, 2026',
+        downloads: 11200,
+        views: 29500,
+        likes: 389,
+        rating: 5.0,
+        rating_count: 142,
+        cover_theme: { c1: '#15803d', c2: '#7e22ce', accent: '#eab308', art: 'erdtree' },
+        links: [
+          { label: 'Base + Shadow of the Erdtree PKG', size: '61.2 GB', url: 'https://cdn.kalpkg.com/ps5/PPSA04610-EldenRing-SOTE.pkg', host: 'KALPKG Direct' }
+        ]
+      },
+      {
+        id: 'tlou-ps3',
+        title: 'The Last of Us (PS3 Arabic)',
+        platform: 'PS3',
+        cusa_id: 'BCES01584',
+        size: '26.4 GB',
+        badge: 'Updated',
+        is_arabic: true,
+        arabic_banner: 'تعريب كامل للقصة',
+        developer: 'Naughty Dog',
+        publisher: 'Sony Computer Entertainment',
+        translator_type: 'تعريب كامل للقصة والقوائم',
+        genre: 'Action, Survival, Adventure',
+        firmware: '4.88+ HEN / CFW',
+        mode: 'Single-player',
+        screen_language: 'Arabic, English',
+        release_date: '14/06/2013',
+        published_at: 'Nov 11, 2026',
+        downloads: 19450,
+        views: 44100,
+        likes: 530,
+        rating: 4.9,
+        rating_count: 240,
+        cover_theme: { c1: '#166534', c2: '#581c87', accent: '#22c55e', art: 'survival' },
+        links: [
+          { label: 'PS3 PKG (Part 1 - Base)', size: '15.0 GB', url: 'https://cdn.kalpkg.com/ps3/BCES01584-TLOU-P1.pkg', host: 'KALPKG Direct' },
+          { label: 'PS3 PKG (Part 2 + Arabic Patch)', size: '11.4 GB', url: 'https://cdn.kalpkg.com/ps3/BCES01584-TLOU-P2-AR.pkg', host: 'KALPKG Direct' }
+        ]
+      }
+    ];
+
+    let gamesCatalog = [];
+
+    // Bilingual Dictionary (EN / AR)
+    const I18N = {
+      en: {
+        langLabel: 'العربية',
+        contactUs: 'Contact Us',
+        privacy: 'Privacy',
+        navHome: 'Home',
+        navArabic: 'Arabic',
+        navGuides: 'Guides',
+        addPkgBtn: 'Add PKG',
+        heroTitle: 'Every <span class="kal-text-gradient">PlayStation PKG,</span> in one place.',
+        heroSubtitle: 'PS5, PS4, PS3 and Arabic PKG files & direct links, organized and easy to reach.',
+        searchBtn: 'Search',
+        viewAll: 'View all',
+        backToGames: 'Back to Games',
+        downloadNow: 'Download PKG Now'
+      },
+      ar: {
+        langLabel: 'English',
+        contactUs: 'تواصل معنا',
+        privacy: 'الخصوصية',
+        navHome: 'الرئيسية',
+        navArabic: 'التعريب',
+        navGuides: 'الشروحات',
+        addPkgBtn: 'إضافة PKG',
+        heroTitle: 'كل ملفات <span class="kal-text-gradient">PlayStation PKG</span> في مكان واحد.',
+        heroSubtitle: 'ألعاب PS5 و PS4 و PS3 والألعاب المعربة بروابط مباشرة سريعة ومنظمة.',
+        searchBtn: 'بحث',
+        viewAll: 'عرض الكل',
+        backToGames: 'العودة للألعاب',
+        downloadNow: 'تحميل ملف PKG الآن'
+      }
+    };
+
+    /**
+     * ============================================================================
+     * INITIALIZATION & SUPABASE SETUP
+     * ============================================================================
+     */
+    window.addEventListener('DOMContentLoaded', async () => {
+      initSupabaseClient();
+      await loadGamesData();
+      renderHeroFannedCards();
+      renderAllViews();
+    });
+
+    function initSupabaseClient() {
+      const savedUrl = localStorage.getItem('kalpkg_sb_url') || DEFAULT_SUPABASE_URL;
+      const savedKey = localStorage.getItem('kalpkg_sb_key') || DEFAULT_SUPABASE_ANON_KEY;
+
+      const urlInput = document.getElementById('sbUrlInput');
+      const keyInput = document.getElementById('sbKeyInput');
+      if (urlInput) urlInput.value = savedUrl;
+      if (keyInput) keyInput.value = savedKey;
+
+      const dot = document.getElementById('sbStatusDot');
+      const label = document.getElementById('sbConnectionLabel');
+
+      if (savedUrl && savedKey && window.supabase) {
+        try {
+          supabaseClient = window.supabase.createClient(savedUrl, savedKey);
+          isSupabaseConnected = true;
+          if (dot) {
+            dot.classList.remove('bg-amber-400');
+            dot.classList.add('bg-emerald-400');
+          }
+          if (label) {
+            label.textContent = 'Connected to Supabase Cloud';
+            label.className = 'text-sm font-bold text-emerald-400 mt-0.5';
+          }
+        } catch (err) {
+          console.error('Supabase init error:', err);
+          isSupabaseConnected = false;
+        }
+      } else {
+        isSupabaseConnected = false;
+        if (dot) {
+          dot.classList.remove('bg-emerald-400');
+          dot.classList.add('bg-amber-400');
+        }
+        if (label) {
+          label.textContent = 'Local Demo Mode (Click Save & Connect to use Supabase)';
+          label.className = 'text-sm font-bold text-amber-400 mt-0.5';
+        }
+      }
+    }
+
+    async function loadGamesData() {
+      if (isSupabaseConnected && supabaseClient) {
+        try {
+          const { data, error } = await supabaseClient
+            .from('pkgs')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (!error && data && data.length > 0) {
+            gamesCatalog = data.map(normalizeGameRecord);
+            showToast(`Loaded ${gamesCatalog.length} PKG releases from Supabase`, 'success');
+            updateTotalBadge();
+            return;
+          } else if (!error && data && data.length === 0) {
+            // Supabase table is empty; seed with sample games locally until user adds rows
+            gamesCatalog = [...SAMPLE_GAMES];
+            showToast('Connected to Supabase (table empty — showing starter catalog)', 'info');
+            updateTotalBadge();
+            return;
+          } else if (error) {
+            console.warn('Supabase fetch warning:', error.message);
+            showToast('Supabase table not found yet — using local catalog', 'info');
+          }
+        } catch (e) {
+          console.warn('Supabase network fallback:', e);
+        }
+      }
+
+      // Fallback / Local Mode (also merges user-added local games from localStorage)
+      const localCustomGames = JSON.parse(localStorage.getItem('kalpkg_custom_games') || '[]');
+      gamesCatalog = [...localCustomGames, ...SAMPLE_GAMES];
+      updateTotalBadge();
+    }
+
+    function normalizeGameRecord(row) {
+      return {
+        id: row.id,
+        title: row.title || 'Untitled PKG',
+        platform: row.platform || 'PS4',
+        cusa_id: row.cusa_id || 'CUSA00000',
+        size: row.size || '10 GB',
+        cover_url: row.cover_url || '',
+        badge: row.badge || '',
+        is_arabic: Boolean(row.is_arabic || row.platform === 'Arabic' || (row.translator_type && /[\u0600-\u06FF]/.test(row.translator_type))),
+        arabic_banner: row.translator_type && /[\u0600-\u06FF]/.test(row.translator_type) ? row.translator_type : '',
+        developer: row.developer || 'PlayStation Studios',
+        publisher: row.publisher || 'Sony Interactive Entertainment',
+        translator_type: row.translator_type || 'English / Multi',
+        genre: row.genre || 'Action, Adventure',
+        firmware: row.firmware || '9.00 / 11.00',
+        mode: row.mode || 'Single-player',
+        screen_language: row.screen_language || 'English, Arabic',
+        release_date: row.release_date || '2026',
+        published_at: row.created_at ? new Date(row.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Nov 22, 2026',
+        downloads: Number(row.downloads || 0),
+        views: Number(row.views || 0),
+        likes: Number(row.likes || 0),
+        rating: Number(row.rating || 5.0),
+        rating_count: Number(row.rating_count || 1),
+        cover_theme: { c1: '#10b981', c2: '#7c3aed', accent: '#22c55e', art: 'custom' },
+        links: Array.isArray(row.links) && row.links.length > 0 ? row.links : [
+          { label: 'Direct PKG Link', size: row.size || '10 GB', url: 'https://cdn.kalpkg.com/download.pkg', host: 'KALPKG Direct' }
+        ]
+      };
+    }
+
+    function updateTotalBadge() {
+      const badge = document.getElementById('totalGamesBadge');
+      if (badge) {
+        badge.textContent = `${gamesCatalog.length} Verified Releases`;
+      }
+    }
+
+    /**
+     * ============================================================================
+     * CUSTOM SVG GAME COVER GENERATOR (Zero External Image Failures)
+     * ============================================================================
+     */
+    function buildCoverGraphicHTML(game, isLarge = false) {
+      const plat = (game.platform === 'Arabic' ? 'PS4' : game.platform) || 'PS4';
+      let headerBg = 'from-blue-600 via-indigo-600 to-purple-700';
+      let headerText = 'text-white';
+      if (plat === 'PS5') {
+        headerBg = 'from-white via-gray-100 to-purple-100';
+        headerText = 'text-gray-950';
+      } else if (plat === 'PS3') {
+        headerBg = 'from-zinc-900 via-emerald-950 to-purple-950';
+        headerText = 'text-emerald-300';
+      }
+
+      const c1 = game.cover_theme?.c1 || '#10b981';
+      const c2 = game.cover_theme?.c2 || '#7c3aed';
+      const accent = game.cover_theme?.accent || '#22c55e';
+
+      // If user provided a valid external image URL, render it with graceful fallback to SVG
+      const customImgHtml = game.cover_url
+        ? `<img src="${escapeHtml(game.cover_url)}" alt="${escapeHtml(game.title)}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" class="w-full h-full object-cover" />`
+        : '';
+
+      return `
+        <div class="relative w-full aspect-[3/4] bg-[#0f1119] overflow-hidden select-none flex flex-col">
+          <!-- Top Console Header Strip -->
+          <div class="relative z-10 h-7 sm:h-8 px-3 bg-gradient-to-r ${headerBg} ${headerText} flex items-center justify-between shadow-md shrink-0">
+            <div class="flex items-center gap-1.5 font-black text-xs tracking-wider">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 4.2v15.4l3.6 1.1V8.3c0-.7.3-1.1.8-.9.6.2.7.7.7 1.4v5.1c2.3.8 4.1 0 4.1-2.9 0-2.9-1.1-4.2-4.2-5.3-1.3-.4-3.4-1.1-5-1.5z"/></svg>
+              <span>${plat}</span>
+            </div>
+            <span class="text-[9px] font-bold opacity-80 tracking-widest uppercase">KALPKG</span>
+          </div>
+
+          <!-- Cover Artwork Body -->
+          <div class="relative flex-1 w-full overflow-hidden">
+            ${customImgHtml}
+            <div style="${game.cover_url ? 'display:none;' : 'display:flex;'}" class="w-full h-full flex-col justify-between p-3.5 relative">
+              <!-- Stylized SVG Illustrated Game Poster -->
+              <svg class="absolute inset-0 w-full h-full" viewBox="0 0 300 380" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                  <linearGradient id="bg-${game.id}" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="${c1}"/>
+                    <stop offset="55%" stop-color="#11131c"/>
+                    <stop offset="100%" stop-color="${c2}"/>
+                  </linearGradient>
+                  <radialGradient id="glow-${game.id}" cx="50%" cy="38%" r="55%">
+                    <stop offset="0%" stop-color="${accent}" stop-opacity="0.55"/>
+                    <stop offset="100%" stop-color="#0b0c10" stop-opacity="0"/>
+                  </radialGradient>
+                </defs>
+                <rect width="300" height="380" fill="url(#bg-${game.id})"/>
+                <rect width="300" height="380" fill="url(#glow-${game.id})"/>
+                <!-- Dynamic Geometric & Emblem Silhouettes -->
+                <circle cx="150" cy="145" r="88" fill="none" stroke="${accent}" stroke-opacity="0.35" stroke-width="2" stroke-dasharray="8 6"/>
+                <circle cx="150" cy="145" r="62" fill="${c2}" fill-opacity="0.28" stroke="#ffffff" stroke-opacity="0.18" stroke-width="1.5"/>
+                <polygon points="150,62 215,185 85,185" fill="none" stroke="#ffffff" stroke-opacity="0.2" stroke-width="2"/>
+                <path d="M0 290 Q 150 230 300 295 L 300 380 L 0 380 Z" fill="#090a0f" fill-opacity="0.88"/>
+              </svg>
+
+              <!-- Top Badges inside Artwork -->
+              <div class="relative z-10 flex flex-col items-start gap-1.5">
+                ${game.badge ? `
+                  <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider shadow-lg ${
+                    game.badge === 'NEW'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-emerald-500 text-gray-950'
+                  }">${escapeHtml(game.badge)}</span>
+                ` : ''}
+                ${game.arabic_banner ? `
+                  <span class="px-2.5 py-0.5 rounded-full bg-emerald-600/95 border border-emerald-300/40 text-white font-arabic text-[10px] font-bold shadow-md">
+                    ${escapeHtml(game.arabic_banner)}
+                  </span>
+                ` : ''}
+              </div>
+
+              <!-- Center Stylized Game Typography Overlay -->
+              <div class="relative z-10 my-auto text-center px-2">
+                <div class="inline-block px-2 py-0.5 rounded bg-black/50 backdrop-blur-sm border border-white/10 text-[9px] font-mono text-emerald-300 mb-1.5">
+                  ${escapeHtml(game.cusa_id)}
+                </div>
+                <div class="font-black ${isLarge ? 'text-xl sm:text-2xl' : 'text-sm sm:text-base'} text-white uppercase tracking-tight leading-tight drop-shadow-[0_3px_10px_rgba(0,0,0,0.95)] line-clamp-3">
+                  ${escapeHtml(game.title)}
+                </div>
+              </div>
+
+              <!-- Bottom Row: Console Tag & Rating Pill -->
+              <div class="relative z-10 flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded bg-gradient-to-r from-emerald-500 to-purple-600 text-white text-[10px] font-extrabold tracking-wide shadow">
+                  ${plat}
+                </span>
+                <span class="px-2 py-0.5 rounded bg-black/70 backdrop-blur-sm text-gray-200 text-[10px] font-bold">
+                  ${escapeHtml(game.size)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /**
+     * ============================================================================
+     * RENDERING FUNCTIONS (HERO, SHELVES, FILTERED GRID, GAME DETAILS)
+     * ============================================================================
+     */
+    function renderHeroFannedCards() {
+      const container = document.getElementById('heroFannedCards');
+      if (!container || gamesCatalog.length < 3) return;
+
+      const leftGame = gamesCatalog.find(g => g.platform === 'PS4') || gamesCatalog[0];
+      const centerGame = gamesCatalog.find(g => g.platform === 'PS5') || gamesCatalog[1];
+      const rightGame = gamesCatalog.find(g => g.platform === 'PS3') || gamesCatalog[2];
+
+      container.innerHTML = `
+        <!-- Left Tilted PS4 Card -->
+        <div onclick="openGameDetail('${leftGame.id}')" class="hero-card-left w-36 sm:w-44 rounded-2xl overflow-hidden border-2 border-emerald-500/40 shadow-2xl cursor-pointer bg-kal-card">
+          ${buildCoverGraphicHTML(leftGame)}
+        </div>
+
+        <!-- Center Elevated PS5 Card -->
+        <div onclick="openGameDetail('${centerGame.id}')" class="hero-card-center w-44 sm:w-52 rounded-2xl overflow-hidden border-2 border-purple-400/70 shadow-[0_20px_50px_rgba(139,92,246,0.4)] cursor-pointer bg-kal-card">
+          ${buildCoverGraphicHTML(centerGame)}
+        </div>
+
+        <!-- Right Tilted PS3 Card -->
+        <div onclick="openGameDetail('${rightGame.id}')" class="hero-card-right w-36 sm:w-44 rounded-2xl overflow-hidden border-2 border-purple-500/40 shadow-2xl cursor-pointer bg-kal-card">
+          ${buildCoverGraphicHTML(rightGame)}
+        </div>
+      `;
+    }
+
+    function createGameCardHTML(game) {
+      return `
+        <article onclick="openGameDetail('${game.id}')" class="game-card group cursor-pointer flex flex-col">
+          <div class="rounded-2xl overflow-hidden border border-white/10 group-hover:border-purple-500/60 bg-kal-card shadow-lg">
+            ${buildCoverGraphicHTML(game)}
+          </div>
+          <div class="pt-2.5 px-0.5 space-y-1">
+            <h3 class="text-xs sm:text-sm font-bold text-gray-100 group-hover:text-emerald-400 transition line-clamp-1">
+              ${escapeHtml(game.title)}
+            </h3>
+            <div class="flex items-center justify-between text-[11px] text-gray-400">
+              <div class="flex items-center gap-2.5">
+                <span class="inline-flex items-center gap-1">
+                  <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+                  ${Number(game.downloads).toLocaleString()}
+                </span>
+                <span class="inline-flex items-center gap-0.5 text-amber-400 font-semibold">
+                  ★ ${Number(game.rating).toFixed(1)}
+                </span>
+              </div>
+              <span class="text-[10px] text-purple-300 font-semibold">${escapeHtml(game.platform)}</span>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderAllViews() {
+      const shelves = document.getElementById('categoryShelves');
+      const filteredSec = document.getElementById('filteredResultsSection');
+
+      const isFiltering = activeCategory !== 'All' || searchQuery.trim().length > 0;
+
+      if (isFiltering) {
+        shelves.classList.add('hidden');
+        filteredSec.classList.remove('hidden');
+
+        const q = searchQuery.trim().toLowerCase();
+        const matches = gamesCatalog.filter(g => {
+          const matchesCat =
+            activeCategory === 'All' ||
+            (activeCategory === 'Arabic' ? g.is_arabic : g.platform === activeCategory);
+          const matchesQuery =
+            !q ||
+            g.title.toLowerCase().includes(q) ||
+            (g.cusa_id && g.cusa_id.toLowerCase().includes(q)) ||
+            (g.genre && g.genre.toLowerCase().includes(q)) ||
+            (g.translator_type && g.translator_type.toLowerCase().includes(q));
+          return matchesCat && matchesQuery;
+        });
+
+        document.getElementById('filteredHeading').textContent =
+          q ? `Search Results for "${searchQuery}"` : `${activeCategory} PKG Releases`;
+        document.getElementById('filteredSubheading').textContent =
+          `Found ${matches.length} verified PKG package${matches.length === 1 ? '' : 's'}`;
+
+        const grid = document.getElementById('filteredGrid');
+        if (matches.length === 0) {
+          grid.innerHTML = `
+            <div class="col-span-full py-14 text-center bg-kal-card border border-white/10 rounded-2xl space-y-3">
+              <div class="text-3xl">🎮</div>
+              <div class="text-base font-bold text-white">No PKG games matched your filter</div>
+              <p class="text-xs text-gray-400">Try another CUSA ID, game name, or add this PKG to the catalog.</p>
+              <button onclick="openManagerModal('add')" class="px-5 py-2 rounded-full kal-gradient text-white text-xs font-bold">+ Add New PKG</button>
+            </div>
+          `;
+        } else {
+          grid.innerHTML = matches.map(createGameCardHTML).join('');
+        }
+      } else {
+        filteredSec.classList.add('hidden');
+        shelves.classList.remove('hidden');
+
+        const ps4Games = gamesCatalog.filter(g => g.platform === 'PS4').slice(0, 6);
+        const ps5Games = gamesCatalog.filter(g => g.platform === 'PS5').slice(0, 6);
+        const arabicGames = gamesCatalog.filter(g => g.is_arabic).slice(0, 6);
+
+        document.getElementById('ps4Grid').innerHTML = ps4Games.map(createGameCardHTML).join('');
+        document.getElementById('ps5Grid').innerHTML = ps5Games.map(createGameCardHTML).join('');
+        document.getElementById('arabicGrid').innerHTML = arabicGames.map(createGameCardHTML).join('');
+      }
+    }
+
+    /**
+     * ============================================================================
+     * NAVIGATION, FILTERING & GAME DETAIL VIEW
+     * ============================================================================
+     */
+    function navigateTo(viewName) {
+      document.getElementById('homeView').classList.toggle('hidden', viewName !== 'home');
+      document.getElementById('detailView').classList.toggle('hidden', viewName !== 'detail');
+      document.getElementById('guidesView').classList.toggle('hidden', viewName !== 'guides');
+
+      if (viewName === 'home') {
+        activeCategory = 'All';
+        searchQuery = '';
+        document.getElementById('heroSearchInput').value = '';
+        document.getElementById('navSearchInput').value = '';
+        updateActiveNavUI('home');
+        updateHeroPillsUI('All');
+        renderAllViews();
+      } else if (viewName === 'guides') {
+        updateActiveNavUI('guides');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function filterByCategory(category) {
+      document.getElementById('homeView').classList.remove('hidden');
+      document.getElementById('detailView').classList.add('hidden');
+      document.getElementById('guidesView').classList.add('hidden');
+
+      activeCategory = category;
+      updateActiveNavUI(category === 'All' ? 'home' : category);
+      updateHeroPillsUI(category);
+      renderAllViews();
+
+      if (category !== 'All') {
+        const sec = document.getElementById('filteredResultsSection');
+        if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function handleSearchInput(val) {
+      searchQuery = val;
+      const heroInp = document.getElementById('heroSearchInput');
+      const navInp = document.getElementById('navSearchInput');
+      if (heroInp && heroInp.value !== val) heroInp.value = val;
+      if (navInp && navInp.value !== val) navInp.value = val;
+
+      document.getElementById('homeView').classList.remove('hidden');
+      document.getElementById('detailView').classList.add('hidden');
+      document.getElementById('guidesView').classList.add('hidden');
+      renderAllViews();
+    }
+
+    function triggerHeroSearch() {
+      const val = document.getElementById('heroSearchInput').value;
+      handleSearchInput(val);
+      const sec = document.getElementById('filteredResultsSection');
+      if (sec && !sec.classList.contains('hidden')) {
+        sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function updateActiveNavUI(activeKey) {
+      document.querySelectorAll('.nav-link').forEach(btn => {
+        const isMatch = btn.getAttribute('data-nav') === activeKey;
+        const indicator = btn.querySelector('.nav-indicator');
+        if (isMatch) {
+          btn.classList.remove('text-gray-400');
+          btn.classList.add('text-white');
+          if (indicator) indicator.classList.remove('hidden');
+        } else {
+          btn.classList.add('text-gray-400');
+          btn.classList.remove('text-white');
+          if (indicator) indicator.classList.add('hidden');
+        }
+      });
+    }
+
+    function updateHeroPillsUI(activePill) {
+      document.querySelectorAll('.hero-pill').forEach(pill => {
+        const isMatch = pill.getAttribute('data-pill') === activePill;
+        if (isMatch) {
+          pill.className = 'hero-pill active px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold kal-gradient text-white shadow-md transition';
+        } else {
+          pill.className = 'hero-pill px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-kal-card border border-white/10 text-gray-300 hover:border-purple-500/50 hover:text-white transition';
+        }
+      });
+    }
+
+    async function openGameDetail(gameId) {
+      const game = gamesCatalog.find(g => String(g.id) === String(gameId));
+      if (!game) return;
+
+      selectedGameId = game.id;
+      game.views = (game.views || 0) + 1;
+
+      // Sync view count to Supabase if connected
+      if (isSupabaseConnected && supabaseClient && typeof game.id === 'string' && game.id.includes('-') && game.id.length > 20) {
+        supabaseClient.from('pkgs').update({ views: game.views }).eq('id', game.id).then(() => {});
+      }
+
+      document.getElementById('homeView').classList.add('hidden');
+      document.getElementById('guidesView').classList.add('hidden');
+      document.getElementById('detailView').classList.remove('hidden');
+
+      // Populate Cover & Header
+      document.getElementById('detailCoverContainer').innerHTML = buildCoverGraphicHTML(game, true);
+      document.getElementById('detailPlatformPill').textContent = game.platform;
+      document.getElementById('detailCusaBadge').textContent = game.cusa_id || 'CUSA00000';
+      document.getElementById('detailTitle').textContent = game.title;
+      document.getElementById('detailPublished').innerHTML = `
+        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <span>Published: ${escapeHtml(game.published_at || 'Nov 22, 2026')}</span>
+      `;
+      document.getElementById('detailBreadcrumb').innerHTML = `Home / ${escapeHtml(game.platform)} / <span class="text-emerald-400 font-semibold">${escapeHtml(game.title)}</span>`;
+
+      // Stats
+      document.getElementById('detailDownloads').textContent = Number(game.downloads).toLocaleString();
+      document.getElementById('detailViews').textContent = Number(game.views).toLocaleString();
+      document.getElementById('detailRating').textContent = Number(game.rating).toFixed(1);
+      document.getElementById('detailRatingCount').textContent = `(${game.rating_count || 1})`;
+
+      // Mirror & Direct PKG Links
+      const linksList = document.getElementById('pkgLinksList');
+      linksList.innerHTML = game.links.map((lnk, idx) => `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-kal-surface border border-white/[0.07] hover:border-emerald-500/40 transition">
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[10px] font-bold">${escapeHtml(lnk.host || 'Direct')}</span>
+              <span class="text-sm font-bold text-white">${escapeHtml(lnk.label)}</span>
+            </div>
+            <div class="text-xs text-gray-400 font-mono truncate max-w-xs sm:max-w-md">${escapeHtml(lnk.url)}</div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-xs font-bold text-purple-300 px-2">${escapeHtml(lnk.size || game.size)}</span>
+            <button onclick="copyLinkToClipboard('${escapeHtml(lnk.url)}')" class="px-3 py-2 rounded-lg bg-kal-card border border-white/10 hover:border-purple-500/60 text-xs font-semibold text-gray-200 hover:text-white transition">
+              Copy Link
+            </button>
+            <a href="${escapeHtml(lnk.url)}" target="_blank" rel="noopener noreferrer" onclick="triggerPkgDownload(event, '${game.id}', ${idx})" class="px-4 py-2 rounded-lg kal-gradient kal-gradient-hover text-white text-xs font-bold shadow transition">
+              Download
+            </a>
+          </div>
+        </div>
+      `).join('');
+
+      // Interactive 5-Star Rating
+      renderInteractiveRatingStars(game);
+
+      // Bookmark, Like & Alert states
+      updateDetailActionButtons(game);
+
+      // 12 Metadata Info Boxes (Matching Screenshot 3)
+      const metaItems = [
+        { label: 'Game Name', value: game.title },
+        { label: 'Platform', value: game.platform.toLowerCase() },
+        { label: 'CUSA / Title ID', value: game.cusa_id || 'CUSA00000' },
+        { label: 'Developer', value: game.developer },
+        { label: 'Publisher', value: game.publisher },
+        { label: 'Translator Type', value: game.translator_type, isArabic: true },
+        { label: 'Genre', value: game.genre },
+        { label: 'Required Firmware', value: game.firmware || '9.00 / 11.00' },
+        { label: 'Mode', value: game.mode },
+        { label: 'Screen Language', value: game.screen_language },
+        { label: 'Size', value: game.size },
+        { label: 'Release Date', value: game.release_date }
+      ];
+
+      document.getElementById('gameInfoGrid').innerHTML = metaItems.map(item => `
+        <div class="bg-[#181b26] border border-white/[0.06] rounded-xl p-3.5 space-y-1">
+          <div class="text-[11px] text-gray-400 font-medium">${item.label}</div>
+          <div class="text-xs sm:text-sm font-bold text-white ${item.isArabic ? 'font-arabic text-emerald-300' : ''}">
+            ${escapeHtml(item.value || '—')}
+          </div>
+        </div>
+      `).join('');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function revealPkgLinks() {
+      const panel = document.getElementById('pkgLinksPanel');
+      if (panel) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        panel.classList.add('ring-2', 'ring-emerald-400');
+        setTimeout(() => panel.classList.remove('ring-2', 'ring-emerald-400'), 1400);
+      }
+      showToast('Direct PKG & Mirror links ready below!', 'success');
+    }
+
+    function triggerPkgDownload(e, gameId, linkIndex) {
+      const game = gamesCatalog.find(g => String(g.id) === String(gameId));
+      if (!game) return;
+      const lnk = game.links[linkIndex];
+
+      // Increment download counter
+      game.downloads = (game.downloads || 0) + 1;
+      document.getElementById('detailDownloads').textContent = Number(game.downloads).toLocaleString();
+
+      if (isSupabaseConnected && supabaseClient && typeof game.id === 'string' && game.id.includes('-') && game.id.length > 20) {
+        supabaseClient.from('pkgs').update({ downloads: game.downloads }).eq('id', game.id).then(() => {});
+      }
+
+      // If sample placeholder domain is clicked, prevent navigation error and copy link + notify cleanly
+      if (lnk && lnk.url.includes('cdn.kalpkg.com')) {
+        e.preventDefault();
+        copyTextSafe(lnk.url);
+        showToast(`Download started & link copied: ${lnk.label}`, 'success');
+      }
+    }
+
+    function renderInteractiveRatingStars(game) {
+      const container = document.getElementById('rateStarsContainer');
+      document.getElementById('userRatedLabel').classList.add('hidden');
+      container.innerHTML = [1, 2, 3, 4, 5].map(star => `
+        <button onclick="rateCurrentGame(${star})" class="text-gray-500 hover:text-amber-400 transition transform hover:scale-110" title="Rate ${star} stars">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+        </button>
+      `).join('');
+    }
+
+    function rateCurrentGame(stars) {
+      const game = gamesCatalog.find(g => String(g.id) === String(selectedGameId));
+      if (!game) return;
+      const count = (game.rating_count || 1) + 1;
+      const newRating = (((game.rating || 5) * (count - 1)) + stars) / count;
+      game.rating = Number(newRating.toFixed(1));
+      game.rating_count = count;
+
+      document.getElementById('detailRating').textContent = game.rating.toFixed(1);
+      document.getElementById('detailRatingCount').textContent = `(${game.rating_count})`;
+      document.getElementById('userRatedLabel').classList.remove('hidden');
+
+      const btns = document.getElementById('rateStarsContainer').querySelectorAll('button');
+      btns.forEach((b, i) => {
+        b.classList.toggle('text-amber-400', i < stars);
+        b.classList.toggle('text-gray-500', i >= stars);
+      });
+
+      if (isSupabaseConnected && supabaseClient && typeof game.id === 'string' && game.id.includes('-') && game.id.length > 20) {
+        supabaseClient.from('pkgs').update({ rating: game.rating, rating_count: game.rating_count }).eq('id', game.id).then(() => {});
+      }
+      showToast(`Rated ${game.title} ${stars}/5 stars!`, 'success');
+    }
+
+    function updateDetailActionButtons(game) {
+      const isBookmarked = userBookmarks.includes(game.id);
+      document.getElementById('bookmarkText').textContent = isBookmarked ? 'Saved in my list ✓' : 'Add to my lists';
+
+      const isLiked = userLikes.includes(game.id);
+      const heart = document.getElementById('likeHeartIcon');
+      heart.setAttribute('fill', isLiked ? '#ec4899' : 'none');
+      heart.classList.toggle('text-pink-500', isLiked);
+      heart.classList.toggle('text-gray-400', !isLiked);
+      document.getElementById('detailLikesCount').textContent = game.likes || 0;
+
+      const hasAlert = userAlerts.includes(game.id);
+      document.getElementById('alertsText').textContent = hasAlert ? 'Update alerts active ✓' : 'Enable alerts';
+    }
+
+    function toggleBookmark() {
+      const game = gamesCatalog.find(g => String(g.id) === String(selectedGameId));
+      if (!game) return;
+      if (userBookmarks.includes(game.id)) {
+        userBookmarks = userBookmarks.filter(id => id !== game.id);
+        showToast('Removed from your list', 'info');
+      } else {
+        userBookmarks.push(game.id);
+        showToast('Added to your PKG list!', 'success');
+      }
+      localStorage.setItem('kalpkg_bookmarks', JSON.stringify(userBookmarks));
+      updateDetailActionButtons(game);
+    }
+
+    function toggleLikeCurrentGame() {
+      const game = gamesCatalog.find(g => String(g.id) === String(selectedGameId));
+      if (!game) return;
+      if (userLikes.includes(game.id)) {
+        userLikes = userLikes.filter(id => id !== game.id);
+        game.likes = Math.max(0, (game.likes || 1) - 1);
+      } else {
+        userLikes.push(game.id);
+        game.likes = (game.likes || 0) + 1;
+      }
+      localStorage.setItem('kalpkg_likes', JSON.stringify(userLikes));
+      updateDetailActionButtons(game);
+
+      if (isSupabaseConnected && supabaseClient && typeof game.id === 'string' && game.id.includes('-') && game.id.length > 20) {
+        supabaseClient.from('pkgs').update({ likes: game.likes }).eq('id', game.id).then(() => {});
+      }
+    }
+
+    function toggleAlerts() {
+      const game = gamesCatalog.find(g => String(g.id) === String(selectedGameId));
+      if (!game) return;
+      if (userAlerts.includes(game.id)) {
+        userAlerts = userAlerts.filter(id => id !== game.id);
+        showToast('Update alerts disabled', 'info');
+      } else {
+        userAlerts.push(game.id);
+        showToast('You will be notified when a new update PKG is posted!', 'success');
+      }
+      localStorage.setItem('kalpkg_alerts', JSON.stringify(userAlerts));
+      updateDetailActionButtons(game);
+    }
+
+    function shareCurrentGame() {
+      const game = gamesCatalog.find(g => String(g.id) === String(selectedGameId));
+      const shareUrl = `${window.location.origin}${window.location.pathname}#game=${game ? game.id : ''}`;
+      copyTextSafe(shareUrl);
+      showToast('Game link copied to clipboard!', 'success');
+    }
+
+    /**
+     * ============================================================================
+     * ADD NEW PKG & SUPABASE SETTINGS MODAL
+     * ============================================================================
+     */
+    function openManagerModal(tab = 'add') {
+      const modal = document.getElementById('managerModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      switchManagerTab(tab);
+    }
+
+    function closeManagerModal() {
+      const modal = document.getElementById('managerModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function switchManagerTab(tab) {
+      const addForm = document.getElementById('addPkgForm');
+      const sbTab = document.getElementById('supabaseConfigTab');
+      const btnAdd = document.getElementById('tabBtnAdd');
+      const btnSb = document.getElementById('tabBtnSupabase');
+
+      if (tab === 'add') {
+        addForm.classList.remove('hidden');
+        sbTab.classList.add('hidden');
+        btnAdd.className = 'px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold kal-gradient text-white transition';
+        btnSb.className = 'px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-kal-card text-gray-400 hover:text-white transition';
+      } else {
+        addForm.classList.add('hidden');
+        sbTab.classList.remove('hidden');
+        btnSb.className = 'px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold kal-gradient text-white transition';
+        btnAdd.className = 'px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-kal-card text-gray-400 hover:text-white transition';
+      }
+    }
+
+    function addLinkFieldRow() {
+      const container = document.getElementById('dynamicLinksContainer');
+      const row = document.createElement('div');
+      row.className = 'grid grid-cols-12 gap-2 link-row items-center';
+      row.innerHTML = `
+        <input required type="text" placeholder="Label (e.g. Update PKG)" class="col-span-4 px-3 py-2 rounded-xl bg-kal-card border border-white/10 text-xs text-white link-label" />
+        <input type="text" placeholder="Size" class="col-span-2 px-2.5 py-2 rounded-xl bg-kal-card border border-white/10 text-xs text-white link-size" />
+        <input required type="url" placeholder="https://..." class="col-span-5 px-3 py-2 rounded-xl bg-kal-card border border-white/10 text-xs text-white link-url" />
+        <button type="button" onclick="this.parentElement.remove()" class="col-span-1 py-2 rounded-xl bg-red-500/15 text-red-400 hover:bg-red-500/25 text-xs font-bold">✕</button>
+      `;
+      container.appendChild(row);
+    }
+
+    async function handleAddPkgSubmit(e) {
+      e.preventDefault();
+      const title = document.getElementById('pkgTitleInput').value.trim();
+      const platform = document.getElementById('pkgPlatformInput').value;
+      const cusa_id = document.getElementById('pkgCusaInput').value.trim() || 'CUSA99001';
+      const size = document.getElementById('pkgSizeInput').value.trim();
+      const cover_url = document.getElementById('pkgCoverInput').value.trim();
+      const badge = document.getElementById('pkgBadgeInput').value;
+      const developer = document.getElementById('pkgDevInput').value.trim() || 'PlayStation Studios';
+      const translator_type = document.getElementById('pkgTranslatorInput').value.trim() || 'English / Multi';
+
+      const linkRows = document.querySelectorAll('#dynamicLinksContainer .link-row');
+      const links = Array.from(linkRows).map(r => ({
+        label: r.querySelector('.link-label').value.trim() || 'Direct PKG',
+        size: r.querySelector('.link-size').value.trim() || size,
+        url: r.querySelector('.link-url').value.trim(),
+        host: 'KALPKG Link'
+      })).filter(l => l.url);
+
+      const is_arabic = platform === 'Arabic' || /[\u0600-\u06FF]/.test(translator_type);
+
+      const newRecord = {
+        title,
+        platform: platform === 'Arabic' ? 'PS4' : platform,
+        cusa_id,
+        size,
+        cover_url,
+        badge,
+        developer,
+        publisher: 'Sony Interactive Entertainment',
+        translator_type,
+        genre: 'Action, Adventure',
+        firmware: '9.00 / 11.00',
+        mode: 'Single-player',
+        screen_language: is_arabic ? 'Arabic, English' : 'English',
+        release_date: '2026',
+        is_arabic,
+        downloads: 1,
+        views: 1,
+        likes: 1,
+        rating: 5.0,
+        rating_count: 1,
+        links
+      };
+
+      const submitBtn = document.getElementById('submitPkgBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving...';
+
+      if (isSupabaseConnected && supabaseClient) {
+        const { data, error } = await supabaseClient
+          .from('pkgs')
+          .insert([newRecord])
+          .select();
+
+        if (!error && data && data[0]) {
+          gamesCatalog.unshift(normalizeGameRecord(data[0]));
+          showToast('Saved to Supabase & published live!', 'success');
+        } else {
+          console.error('Supabase insert error:', error);
+          const localGame = normalizeGameRecord({ ...newRecord, id: 'local-' + Date.now() });
+          gamesCatalog.unshift(localGame);
+          saveLocalCustomGame(localGame);
+          showToast('Saved locally (Check Supabase table RLS/schema)', 'info');
+        }
+      } else {
+        const localGame = normalizeGameRecord({ ...newRecord, id: 'local-' + Date.now() });
+        gamesCatalog.unshift(localGame);
+        saveLocalCustomGame(localGame);
+        showToast('PKG added to catalog!', 'success');
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Publish PKG to KALPKG';
+      document.getElementById('addPkgForm').reset();
+      updateTotalBadge();
+      renderHeroFannedCards();
+      renderAllViews();
+      closeManagerModal();
+    }
+
+    function saveLocalCustomGame(game) {
+      const existing = JSON.parse(localStorage.getItem('kalpkg_custom_games') || '[]');
+      existing.unshift(game);
+      localStorage.setItem('kalpkg_custom_games', JSON.stringify(existing));
+    }
+
+    async function saveSupabaseConfig() {
+      const url = document.getElementById('sbUrlInput').value.trim();
+      const key = document.getElementById('sbKeyInput').value.trim();
+      if (!url || !key) {
+        showToast('Please enter both Supabase URL and Anon Key', 'info');
+        return;
+      }
+      localStorage.setItem('kalpkg_sb_url', url);
+      localStorage.setItem('kalpkg_sb_key', key);
+      initSupabaseClient();
+      await loadGamesData();
+      renderHeroFannedCards();
+      renderAllViews();
+    }
+
+    async function disconnectSupabase() {
+      localStorage.removeItem('kalpkg_sb_url');
+      localStorage.removeItem('kalpkg_sb_key');
+      document.getElementById('sbUrlInput').value = '';
+      document.getElementById('sbKeyInput').value = '';
+      initSupabaseClient();
+      await loadGamesData();
+      renderAllViews();
+      showToast('Switched to Local Demo Mode', 'info');
+    }
+
+    function copySqlSnippet() {
+      const sql = document.getElementById('sqlSnippetBlock').textContent;
+      copyTextSafe(sql);
+      showToast('Supabase SQL setup copied to clipboard!', 'success');
+    }
+
+    /**
+     * ============================================================================
+     * UTILITY HELPERS (CLIPBOARD, TOASTS, LANGUAGE TOGGLE, MODALS)
+     * ============================================================================
+     */
+    function copyLinkToClipboard(url) {
+      copyTextSafe(url);
+      showToast('PKG link copied to clipboard!', 'success');
+    }
+
+    function copyTextSafe(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+      } catch (err) {
+        console.warn('Copy fallback:', err);
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const borderClass = type === 'success' ? 'border-emerald-500/60' : 'border-purple-500/60';
+      const dotClass = type === 'success' ? 'bg-emerald-400' : 'bg-purple-400';
+
+      toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#14161f]/95 backdrop-blur-md border ${borderClass} text-xs sm:text-sm font-semibold text-white shadow-2xl animate-fade-up`;
+      toast.innerHTML = `
+        <span class="w-2 h-2 rounded-full ${dotClass}"></span>
+        <span>${escapeHtml(message)}</span>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => toast.remove(), 260);
+      }, 3000);
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'en' ? 'ar' : 'en';
+      const dict = I18N[currentLang];
+      document.documentElement.setAttribute('lang', currentLang);
+      document.documentElement.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
+
+      document.getElementById('langLabel').textContent = dict.langLabel;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) {
+          if (key === 'heroTitle') {
+            el.innerHTML = dict[key];
+          } else {
+            el.textContent = dict[key];
+          }
+        }
+      });
+      showToast(currentLang === 'ar' ? 'تم التبديل إلى اللغة العربية' : 'Switched to English', 'info');
+    }
+
+    function selectTopPlatform(plat) {
+      if (plat === 'PlayStation') {
+        navigateTo('home');
+      } else {
+        showToast(`${plat} section coming soon — PlayStation PKG hub is active!`, 'info');
+      }
+    }
+
+    function toggleMobileMenu() {
+      document.getElementById('mobileMenu').classList.toggle('hidden');
+    }
+
+    function openLoginModal() {
+      document.getElementById('genericModalTitle').textContent = 'KALPKG Uploader Login';
+      document.getElementById('genericModalBody').innerHTML = `
+        <form onsubmit="event.preventDefault(); closeGenericModal(); showToast('Signed in as KALPKG Admin!', 'success'); document.getElementById('loginHeaderBtn').textContent = 'Admin';" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Email Address</label>
+            <input required type="email" placeholder="admin@kalpkg.com" class="w-full px-3.5 py-2.5 rounded-xl bg-kal-card border border-white/10 text-white text-sm outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Password</label>
+            <input required type="password" placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl bg-kal-card border border-white/10 text-white text-sm outline-none focus:border-purple-500" />
+          </div>
+          <button type="submit" class="w-full py-2.5 rounded-full kal-gradient text-white font-bold text-sm">Sign In</button>
+        </form>
+      `;
+      const m = document.getElementById('genericModal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function openInfoModal(topic) {
+      const titles = {
+        DMCA: 'DMCA & Copyright Policy',
+        Contact: 'Contact KALPKG.COM',
+        Privacy: 'Privacy Policy'
+      };
+      const bodies = {
+        DMCA: '<p>KALPKG.COM indexes metadata and user-submitted links for educational and preservation purposes. To request link removal, contact <span class="text-emerald-400 font-semibold">dmca@kalpkg.com</span>.</p>',
+        Contact: '<p>Have a broken PKG mirror or want to contribute Arabic game localizations? Reach our team at <span class="text-purple-400 font-semibold">support@kalpkg.com</span>.</p>',
+        Privacy: '<p>KALPKG respects your privacy. Bookmarks, likes, and custom Supabase keys are stored locally in your browser storage.</p>'
+      };
+      document.getElementById('genericModalTitle').textContent = titles[topic] || topic;
+      document.getElementById('genericModalBody').innerHTML = bodies[topic] || '';
+      const m = document.getElementById('genericModal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeGenericModal() {
+      const m = document.getElementById('genericModal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
